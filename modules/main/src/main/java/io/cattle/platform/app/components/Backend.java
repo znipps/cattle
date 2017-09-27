@@ -272,6 +272,9 @@ public class Backend {
 
         ExternalProcessHandler composeExecutor = externalFactory.handler("rancher-compose-executor");
         ExternalProcessHandler goMachineService = externalFactory.handler("machine-service", "machine.execute");
+        // TODO: remove and figure out why GMS isn't idempotent
+        goMachineService.setRetry(1);
+        goMachineService.setTimeoutMillis(120000L);
         ExternalProcessHandler k8sClusterService = externalFactory.handler("k8s-cluster-service", "netes.agent.execute");
 
         PodCreate podCreate = new PodCreate(f.eventService, f.objectManager, f.processManager, f.metaDataManager, deploymentSyncFactory, c.objectSerializer, metadataManager);
@@ -302,9 +305,9 @@ public class Backend {
         ClearCacheHandler clearCacheHandler = new ClearCacheHandler(f.eventService, d.dbCacheManager);
         DeploymentUnitRemove deploymentUnitRemove = new DeploymentUnitRemove(f.resourcePoolManager);
         HosttemplateRemove hosttemplateRemove = new HosttemplateRemove(c.secretsService);
-        InstanceRemove instanceRemove = new InstanceRemove(c.agentLocator, c.objectSerializer, f.objectManager, f.processManager, deploymentSyncFactory, metadataManager);
-        InstanceStart instanceStart = new InstanceStart(c.agentLocator, c.objectSerializer, f.objectManager, f.processManager, deploymentSyncFactory, metadataManager);
-        InstanceStop instanceStop = new InstanceStop(c.agentLocator, c.objectSerializer, f.objectManager, f.processManager, deploymentSyncFactory, metadataManager);
+        InstanceRemove instanceRemove = new InstanceRemove(c.agentLocator, c.objectSerializer, f.objectManager, f.processManager, deploymentSyncFactory, metadataManager, f.eventService);
+        InstanceStart instanceStart = new InstanceStart(c.agentLocator, c.objectSerializer, f.objectManager, f.processManager, deploymentSyncFactory, metadataManager, f.eventService);
+        InstanceStop instanceStop = new InstanceStop(c.agentLocator, c.objectSerializer, f.objectManager, f.processManager, deploymentSyncFactory, metadataManager, f.eventService);
         MountRemove mountRemove = new MountRemove(c.agentLocator, c.objectSerializer, f.objectManager, f.processManager);
         PullTaskCreate pullTaskCreate = new PullTaskCreate(allocationHelper, c.agentLocator, progress, imageCredentialLookup, c.objectSerializer, f.objectManager);
         SecretRemove secretRemove = new SecretRemove(c.secretsService);
